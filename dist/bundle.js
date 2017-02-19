@@ -21815,28 +21815,62 @@
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var socket = io(); // eslint-disable-line no-undef
+	var bodyEl = document.querySelector('body');
 
 	var App = _react2.default.createClass({
 	    displayName: 'App',
 	    getInitialState: function getInitialState() {
 	        return { messages: [] };
 	    },
+
+
+	    /**
+	     * Listens for events on the socket
+	     * @return {void}
+	     */
 	    componentDidMount: function componentDidMount() {
 	        socket.on('message-added', this.addMessage);
 	        socket.on('connect', function () {
 	            return socket.emit('join');
 	        });
 	    },
+
+
+	    /**
+	     * Adjusts the window so the latest messages are visible
+	     * @return {void}
+	     */
+	    componentDidUpdate: function componentDidUpdate() {
+	        bodyEl.scrollTop += this.messagesList.scrollHeight;
+	    },
+
+
+	    /**
+	     * Adds incoming messages to the state's messages array
+	     * @param {string} message A message in the chat room
+	     * @return {void}
+	     */
 	    addMessage: function addMessage(message) {
-	        console.log('APPEND', message);
 	        this.setState({ messages: this.state.messages.concat(message) });
 	    },
+
+
+	    /**
+	     * Handles a user submiting text to the chat room
+	     * @param {event} e The click event from the Send button
+	     * @return {void}
+	     */
 	    onSubmit: function onSubmit(e) {
 	        e.preventDefault();
-	        console.log('hello', this.textInput.value);
 	        socket.emit('message-added', this.textInput.value);
-	        this.textInput = '';
+	        this.textInput.value = '';
 	    },
+
+
+	    /**
+	     * Renders individual messages to the page
+	     * @return {Array} Array of messages in jsx
+	     */
 	    renderMessages: function renderMessages() {
 	        return this.state.messages.map(function (message, index) {
 	            return _react2.default.createElement(
@@ -21856,7 +21890,12 @@
 	            null,
 	            _react2.default.createElement(
 	                'ul',
-	                { id: 'messages' },
+	                {
+	                    id: 'messages',
+	                    ref: function ref(ul) {
+	                        _this.messagesList = ul;
+	                    }
+	                },
 	                this.renderMessages()
 	            ),
 	            _react2.default.createElement(
@@ -21864,10 +21903,10 @@
 	                { onSubmit: this.onSubmit },
 	                _react2.default.createElement('input', {
 	                    type: 'text',
+	                    autoComplete: 'off',
 	                    ref: function ref(input) {
 	                        _this.textInput = input;
-	                    },
-	                    autoComplete: 'off'
+	                    }
 	                }),
 	                _react2.default.createElement(
 	                    'button',

@@ -1,46 +1,28 @@
+html,
+body,
+div,
+p {
+    border: 0;
+    font: inherit;
+    font-family: 'Roboto', Verdana, 'Trebuchet MS', Arial, sans-serif;
+    font-size: 100%;
+    margin: 0;
+    padding: 0;
+    vertical-align: baseline;
+}
+
+html {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
 * {
-    box-sizing:
-    border-box;
-    margin: 0;
-    padding: 0;
-}
+    -moz-box-sizing: inherit;
+    -webkit-box-sizing: inherit;
+    box-sizing: inherit;
 
-body {
-    font: 13px Helvetica, Arial;
-}
-
-form {
-    background: #000;
-    bottom: 0;
-    padding: 3px;
-    position: fixed;
-    width: 100%;
-
-    input {
-        border: 0;
-        margin-right: .5%;
-        padding: 10px;
-        width: 90%;
-    }
-
-    button {
-        background: rgb(130, 224, 255);
-        border: 0;
-        padding: 10px;
-        width: 9%;
-    }
-}
-
-#messages {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-
-    li {
-        padding: 5px 10px;
-
-        &:nth-child(odd) {
-            background: #eee;
-        }
+    & :focus {
+        outline: none;
     }
 }
