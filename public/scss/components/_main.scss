@@ -1,0 +1,57 @@
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+
+    .username {
+        font-weight: bold;
+        padding-top: 5px;
+    }
+
+    div { padding-bottom: 7px; }
+}
+
+.users {
+    li {
+        overflow: hidden;
+        padding: 5px 10px;
+        text-overflow: ellipsis;
+    }
+}
+
+nav {
+    background-color: $white;
+    border: 1px solid $nav-border-color;
+    left: 0;
+    margin-left: $sidebar-width;
+    padding: 10px 20px;
+    position: fixed;
+    right: 0;
+    top: 0;
+}
+
+aside {
+    background-color: $sidebar-color;
+    bottom: 0;
+    color: $white;
+    left: 0;
+    padding: 10px;
+    position: fixed;
+    top: 0;
+    width: $sidebar-width;
+}
+
+section {
+    margin: $nav-height 0 $nav-height $sidebar-width;
+    padding: 20px;
+}
+
+footer {
+    background-color: $white;
+    bottom: 0;
+    left: 0;
+    margin-left: $sidebar-width;
+    padding: 10px 20px;
+    position: fixed;
+    right: 0;
+}

@@ -22,35 +22,86 @@ html {
   * :focus {
     outline: none; }
 
-form {
-  bottom: 0;
-  padding: 3px;
-  position: fixed;
-  width: 100%; }
-  form input {
-    border: 1px solid #999;
-    border-radius: 5px;
-    margin-right: .5%;
-    padding: 10px;
-    width: 90%; }
-  form button {
-    background-color: #1693a5;
-    border: 0;
-    border-radius: 5px;
-    color: #fff;
-    font-weight: bold;
-    padding: 10px;
-    text-transform: uppercase;
-    width: 9%; }
-    form button:hover {
-      background-color: rgba(22, 147, 165, 0.7); }
+h2 {
+  color: #fff;
+  font-size: 1.5em;
+  letter-spacing: 1px;
+  margin: 0;
+  margin-bottom: 20px; }
 
-#messages {
+input {
+  border: 1px solid #999;
+  border-radius: 5px;
+  padding: 10px;
+  width: 100%; }
+
+.overlay {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  height: 100%;
+  left: 0;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1; }
+  .overlay .modal {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #547980;
+    border-radius: 5px;
+    padding: 30px; }
+    .overlay .modal div {
+      width: 270px; }
+
+ul {
   list-style-type: none;
   margin: 0;
-  margin-bottom: 50px;
   padding: 0; }
-  #messages li {
-    padding: 5px 10px; }
-    #messages li:nth-child(odd) {
-      background: rgba(22, 147, 165, 0.2); }
+  ul .username {
+    font-weight: bold;
+    padding-top: 5px; }
+  ul div {
+    padding-bottom: 7px; }
+
+.users li {
+  overflow: hidden;
+  padding: 5px 10px;
+  text-overflow: ellipsis; }
+
+nav {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  left: 0;
+  margin-left: 200px;
+  padding: 10px 20px;
+  position: fixed;
+  right: 0;
+  top: 0; }
+
+aside {
+  background-color: #547980;
+  bottom: 0;
+  color: #fff;
+  left: 0;
+  padding: 10px;
+  position: fixed;
+  top: 0;
+  width: 200px; }
+
+section {
+  margin: 50px 0 50px 200px;
+  padding: 20px; }
+
+footer {
+  background-color: #fff;
+  bottom: 0;
+  left: 0;
+  margin-left: 200px;
+  padding: 10px 20px;
+  position: fixed;
+  right: 0; }

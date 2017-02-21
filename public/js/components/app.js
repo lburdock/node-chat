@@ -1,75 +1,39 @@
 import React from 'react';
-
+import Users from './users';
+import Messages from './messages';
+import Overlay from './overlay';
 const socket = io(); // eslint-disable-line no-undef
-const bodyEl = document.querySelector('body');
 
 const App = React.createClass({
     getInitialState() {
-        return { messages: [] };
+        return {
+            chatroom: 'general-chat',
+            userData: null,
+        };
     },
 
     /**
-     * Listens for events on the socket
+     * Save the user data locally and let the server know a user has joined
+     * @param {object} userData Data about the user (name and id)
      * @return {void}
      */
-    componentDidMount() {
-        socket.on('message-added', this.addMessage);
-        socket.on('connect', () => socket.emit('join'));
-    },
-
-    /**
-     * Adjusts the window so the latest messages are visible
-     * @return {void}
-     */
-    componentDidUpdate() {
-        bodyEl.scrollTop += this.messagesList.scrollHeight;
-    },
-
-    /**
-     * Adds incoming messages to the state's messages array
-     * @param {string} message A message in the chat room
-     * @return {void}
-     */
-    addMessage(message) {
-        this.setState({ messages: this.state.messages.concat(message) });
-    },
-
-    /**
-     * Handles a user submiting text to the chat room
-     * @param {event} e The click event from the Send button
-     * @return {void}
-     */
-    onSubmit(e) {
-        e.preventDefault();
-        socket.emit('message-added', this.textInput.value);
-        this.textInput.value = '';
-    },
-
-    /**
-     * Renders individual messages to the page
-     * @return {Array} Array of messages in jsx
-     */
-    renderMessages() {
-        return this.state.messages.map((message, index) => <li key={index}>{message}</li>);
+    updateUserData(userData) {
+        socket.emit('user-joined', userData);
+        this.setState({userData});
     },
 
     render: function() {
         return (
             <div>
-                <ul
-                    id="messages"
-                    ref={ul => { this.messagesList = ul; }}
-                >
-                    {this.renderMessages()}
-                </ul>
-                <form onSubmit={this.onSubmit}>
-                    <input
-                        type="text"
-                        autoComplete="off"
-                        ref={(input) => { this.textInput = input; }}
-                    />
-                    <button>Send</button>
-                </form>
+                <main>
+                    <nav>{`#${this.state.chatroom}`}</nav>
+                    <Users />
+                    <Messages userData={this.state.userData} />
+                </main>
+                { !this.state.userData
+                    ? <Overlay updateUserData={this.updateUserData} />
+                    : null
+                }
             </div>
         );
     },

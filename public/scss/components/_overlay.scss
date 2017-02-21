@@ -1,0 +1,26 @@
+@mixin flex($flex-direction: row) {
+    align-items: center;
+    display: flex;
+    flex-direction: $flex-direction;
+    justify-content: center;
+}
+
+.overlay {
+    @include flex;
+    background-color: $overlay-color;
+    height: 100%;
+    left: 0;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1;
+
+    .modal {
+        @include flex(column);
+        background-color: $sidebar-color;
+        border-radius: $border-radius;
+        padding: 30px;
+
+        div { width: 270px; }
+    }
+}

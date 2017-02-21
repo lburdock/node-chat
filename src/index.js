@@ -5,6 +5,7 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var messageController = require('./controllers/messages');
+var userController = require('./controllers/users');
 
 app.use(express.static('dist'));
 
@@ -13,28 +14,49 @@ app.get('/', function(req, res) {
 });
 
 io.on('connection', function(socket) {
-    console.log('a user connected');
-
-    socket.on('disconnect', function() {
-        console.log('user disconnected');
+    socket.on('messages-client-ready', function() {
+        messageController
+            .getAll()
+            .then(function(messages) {
+                socket.emit("messages-fetched", messages);
+            });
     });
 
-    socket.on('message-added', function(message) {
+    socket.on('users-client-ready', function() {
+        userController
+            .getAll()
+            .then(function(users) {
+                socket.emit('users-fetched', users);
+            });
+    });
+
+    socket.on('user-joined', function(user) {
+        socket.user = user;
+        userController
+            .save(user)
+            .then(function(users) {
+                console.log('user joined:', user.name, user.id);
+                io.emit('users-fetched', users);
+            });
+    });
+
+    socket.on('message-entered', function(message) {
         messageController
             .save(message)
             .then(function() {
-                io.emit('message-added', message);
+                io.emit('message-saved', message);
             });
     });
 
-    socket.on('join', function() {
-        messageController
-            .getAllReversed()
-            .then(function(messages) {
-                messages.forEach(function(message) {
-                    socket.emit("message-added", JSON.parse(message));
+    socket.on('disconnect', function() {
+        if (socket.user) {
+            userController
+                .removeUser(socket.user)
+                .then(function(users) {
+                    console.log('user left:', socket.user.name, socket.user.id);
+                    io.emit('users-fetched', users);
                 });
-            });
+        }
     });
 });
 

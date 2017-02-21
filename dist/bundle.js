@@ -45,7 +45,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(1);
-	module.exports = __webpack_require__(185);
+	module.exports = __webpack_require__(191);
 
 
 /***/ },
@@ -21812,15 +21812,85 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
+	var _users = __webpack_require__(185);
+
+	var _users2 = _interopRequireDefault(_users);
+
+	var _messages = __webpack_require__(186);
+
+	var _messages2 = _interopRequireDefault(_messages);
+
+	var _overlay = __webpack_require__(187);
+
+	var _overlay2 = _interopRequireDefault(_overlay);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var socket = io(); // eslint-disable-line no-undef
-	var bodyEl = document.querySelector('body');
 
 	var App = _react2.default.createClass({
 	    displayName: 'App',
 	    getInitialState: function getInitialState() {
-	        return { messages: [] };
+	        return {
+	            chatroom: 'general-chat',
+	            userData: null
+	        };
+	    },
+
+
+	    /**
+	     * Save the user data locally and let the server know a user has joined
+	     * @param {object} userData Data about the user (name and id)
+	     * @return {void}
+	     */
+	    updateUserData: function updateUserData(userData) {
+	        socket.emit('user-joined', userData);
+	        this.setState({ userData: userData });
+	    },
+
+
+	    render: function render() {
+	        return _react2.default.createElement(
+	            'div',
+	            null,
+	            _react2.default.createElement(
+	                'main',
+	                null,
+	                _react2.default.createElement(
+	                    'nav',
+	                    null,
+	                    '#' + this.state.chatroom
+	                ),
+	                _react2.default.createElement(_users2.default, null),
+	                _react2.default.createElement(_messages2.default, { userData: this.state.userData })
+	            ),
+	            !this.state.userData ? _react2.default.createElement(_overlay2.default, { updateUserData: this.updateUserData }) : null
+	        );
+	    }
+	});
+
+	module.exports = App;
+
+/***/ },
+/* 185 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _react = __webpack_require__(2);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var socket = io(); // eslint-disable-line no-undef
+
+	var Users = _react2.default.createClass({
+	    displayName: 'Users',
+	    getInitialState: function getInitialState() {
+	        return {
+	            users: []
+	        };
 	    },
 
 
@@ -21829,12 +21899,121 @@
 	     * @return {void}
 	     */
 	    componentDidMount: function componentDidMount() {
-	        socket.on('message-added', this.addMessage);
 	        socket.on('connect', function () {
-	            return socket.emit('join');
+	            return socket.emit('users-client-ready');
+	        });
+	        socket.on('users-fetched', this.updateUsers);
+	    },
+
+
+	    /**
+	     * Limit re-rendering to user list updates
+	     * @param {object} nextProps The updated props object
+	     * @param {object} nextState The updated state object
+	     * @return {boolean} Whether the component should re-render
+	     */
+	    shouldComponentUpdate: function shouldComponentUpdate(nextProps, nextState) {
+	        return this.state.users !== nextState.users;
+	    },
+
+	    /**
+	     * Updates the state with the latest list of users
+	     * @param {array} users A list of user objects
+	     * @return {void}
+	     */
+	    updateUsers: function updateUsers(users) {
+	        this.setState({ users: users });
+	    },
+
+
+	    /**
+	     * Renders the users as list elements
+	     * @param {array} users A list of all the chat room users
+	     * @return {Array} Array of users in jsx
+	     */
+	    renderUsers: function renderUsers(users) {
+	        return users.map(function (user, index) {
+	            return _react2.default.createElement(
+	                'li',
+	                { key: index },
+	                user.name
+	            );
 	        });
 	    },
 
+
+	    render: function render() {
+	        return _react2.default.createElement(
+	            'aside',
+	            null,
+	            _react2.default.createElement(
+	                'div',
+	                null,
+	                'USERS'
+	            ),
+	            _react2.default.createElement(
+	                'ul',
+	                { className: 'users' },
+	                this.renderUsers(this.state.users)
+	            )
+	        );
+	    }
+	});
+
+	module.exports = Users;
+
+/***/ },
+/* 186 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _react = __webpack_require__(2);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var socket = io(); // eslint-disable-line no-undef
+	var bodyEl = document.querySelector('body');
+	var currentSpeaker = null;
+
+	var Messages = _react2.default.createClass({
+	    displayName: 'Messages',
+
+	    propTypes: {
+	        userData: _react2.default.PropTypes.object
+	    },
+
+	    getInitialState: function getInitialState() {
+	        return {
+	            messages: []
+	        };
+	    },
+
+
+	    /**
+	     * Listens for events on the socket
+	     * @return {void}
+	     */
+	    componentDidMount: function componentDidMount() {
+	        socket.on('connect', function () {
+	            return socket.emit('messages-client-ready');
+	        });
+	        socket.on('messages-fetched', this.updateMessages);
+	        socket.on('message-saved', this.onMessageSaved);
+	    },
+
+
+	    /**
+	     * Limit re-rendering to user list updates
+	     * @param {object} nextProps The updated props object
+	     * @param {object} nextState The updated state object
+	     * @return {boolean} Whether the component should re-render
+	     */
+	    shouldComponentUpdate: function shouldComponentUpdate(nextProps, nextState) {
+	        return this.state.messages !== nextState.messages;
+	    },
 
 	    /**
 	     * Adjusts the window so the latest messages are visible
@@ -21846,38 +22025,75 @@
 
 
 	    /**
-	     * Adds incoming messages to the state's messages array
-	     * @param {string} message A message in the chat room
+	     * Updates the state with the latest messages
+	     * @param {array} messages A list of message objects
 	     * @return {void}
 	     */
-	    addMessage: function addMessage(message) {
-	        this.setState({ messages: this.state.messages.concat(message) });
+	    updateMessages: function updateMessages(messages) {
+	        currentSpeaker = null;
+	        this.setState({ messages: messages });
 	    },
 
 
 	    /**
 	     * Handles a user submiting text to the chat room
-	     * @param {event} e The click event from the Send button
+	     * @param {event} e The keyup event
 	     * @return {void}
 	     */
-	    onSubmit: function onSubmit(e) {
+	    onMessageEntered: function onMessageEntered(e) {
 	        e.preventDefault();
-	        socket.emit('message-added', this.textInput.value);
-	        this.textInput.value = '';
+	        if (e.keyCode == 13) {
+	            var message = Object.assign({}, this.props.userData, { message: this.messageInput.value });
+	            socket.emit('message-entered', message);
+	            this.messageInput.value = '';
+	        }
 	    },
 
 
 	    /**
-	     * Renders individual messages to the page
+	     * Adds saved messages to the state's messages array
+	     * @param {object} message A message in the chat room with user data
+	     * @return {void}
+	     */
+	    onMessageSaved: function onMessageSaved(message) {
+	        this.updateMessages(this.state.messages.concat(message));
+	    },
+
+
+	    /**
+	     * Renders the chat messages to the page
+	     * @param {array} messages A list of all the chat room messages
 	     * @return {Array} Array of messages in jsx
 	     */
-	    renderMessages: function renderMessages() {
-	        return this.state.messages.map(function (message, index) {
-	            return _react2.default.createElement(
-	                'li',
-	                { key: index },
-	                message
-	            );
+	    renderMessages: function renderMessages(messages) {
+	        return messages.map(function (msg, index) {
+	            if (msg.id !== currentSpeaker) {
+	                currentSpeaker = msg.id;
+	                return _react2.default.createElement(
+	                    'li',
+	                    { key: index },
+	                    _react2.default.createElement(
+	                        'div',
+	                        { className: 'username' },
+	                        msg.name
+	                    ),
+	                    _react2.default.createElement(
+	                        'div',
+	                        null,
+	                        msg.message
+	                    )
+	                );
+	            } else {
+	                return _react2.default.createElement(
+	                    'li',
+	                    { key: index },
+	                    _react2.default.createElement(
+	                        'div',
+	                        null,
+	                        msg.message
+	                    )
+	                );
+	            }
 	        });
 	    },
 
@@ -21886,42 +22102,215 @@
 	        var _this = this;
 
 	        return _react2.default.createElement(
-	            'div',
+	            'section',
 	            null,
 	            _react2.default.createElement(
 	                'ul',
 	                {
-	                    id: 'messages',
+	                    className: 'messages',
 	                    ref: function ref(ul) {
 	                        _this.messagesList = ul;
 	                    }
 	                },
-	                this.renderMessages()
+	                this.renderMessages(this.state.messages)
 	            ),
 	            _react2.default.createElement(
-	                'form',
-	                { onSubmit: this.onSubmit },
+	                'footer',
+	                null,
 	                _react2.default.createElement('input', {
 	                    type: 'text',
-	                    autoComplete: 'off',
+	                    placeholder: 'Enter your message',
+	                    onKeyUp: this.onMessageEntered,
 	                    ref: function ref(input) {
-	                        _this.textInput = input;
+	                        _this.messageInput = input;
 	                    }
-	                }),
+	                })
+	            )
+	        );
+	    }
+	});
+
+	module.exports = Messages;
+
+/***/ },
+/* 187 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _react = __webpack_require__(2);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _v = __webpack_require__(188);
+
+	var _v2 = _interopRequireDefault(_v);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var Overlay = _react2.default.createClass({
+	    displayName: 'Overlay',
+
+	    propTypes: {
+	        updateUserData: _react2.default.PropTypes.func
+	    },
+
+	    /**
+	     * Compiles the user data
+	     * @param {event} e The click event from the Send button
+	     * @return {void}
+	     */
+	    onUsernameEntered: function onUsernameEntered(e) {
+	        e.preventDefault();
+	        if (e.keyCode == 13) {
+	            var userData = {
+	                name: this.usernameInput.value,
+	                id: (0, _v2.default)()
+	            };
+	            this.props.updateUserData(userData);
+	        }
+	    },
+
+
+	    render: function render() {
+	        var _this = this;
+
+	        return _react2.default.createElement(
+	            'div',
+	            { className: 'overlay' },
+	            _react2.default.createElement(
+	                'div',
+	                { className: 'modal' },
 	                _react2.default.createElement(
-	                    'button',
+	                    'h2',
 	                    null,
-	                    'Send'
+	                    'Enter your username'
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    null,
+	                    _react2.default.createElement('input', {
+	                        type: 'text',
+	                        maxLength: '50',
+	                        onKeyUp: this.onUsernameEntered,
+	                        ref: function ref(input) {
+	                            _this.usernameInput = input;
+	                        }
+	                    })
 	                )
 	            )
 	        );
 	    }
 	});
 
-	module.exports = App;
+	module.exports = Overlay;
 
 /***/ },
-/* 185 */
+/* 188 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var rng = __webpack_require__(189);
+	var bytesToUuid = __webpack_require__(190);
+
+	function v4(options, buf, offset) {
+	  var i = buf && offset || 0;
+
+	  if (typeof(options) == 'string') {
+	    buf = options == 'binary' ? new Array(16) : null;
+	    options = null;
+	  }
+	  options = options || {};
+
+	  var rnds = options.random || (options.rng || rng)();
+
+	  // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+	  rnds[6] = (rnds[6] & 0x0f) | 0x40;
+	  rnds[8] = (rnds[8] & 0x3f) | 0x80;
+
+	  // Copy bytes to buffer, if provided
+	  if (buf) {
+	    for (var ii = 0; ii < 16; ++ii) {
+	      buf[i + ii] = rnds[ii];
+	    }
+	  }
+
+	  return buf || bytesToUuid(rnds);
+	}
+
+	module.exports = v4;
+
+
+/***/ },
+/* 189 */
+/***/ function(module, exports) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {// Unique ID creation requires a high quality random # generator.  In the
+	// browser this is a little complicated due to unknown quality of Math.random()
+	// and inconsistent support for the `crypto` API.  We do the best we can via
+	// feature-detection
+	var rng;
+
+	var crypto = global.crypto || global.msCrypto; // for IE 11
+	if (crypto && crypto.getRandomValues) {
+	  // WHATWG crypto RNG - http://wiki.whatwg.org/wiki/Crypto
+	  var rnds8 = new Uint8Array(16);
+	  rng = function whatwgRNG() {
+	    crypto.getRandomValues(rnds8);
+	    return rnds8;
+	  };
+	}
+
+	if (!rng) {
+	  // Math.random()-based (RNG)
+	  //
+	  // If all else fails, use Math.random().  It's fast, but is of unspecified
+	  // quality.
+	  var  rnds = new Array(16);
+	  rng = function() {
+	    for (var i = 0, r; i < 16; i++) {
+	      if ((i & 0x03) === 0) r = Math.random() * 0x100000000;
+	      rnds[i] = r >>> ((i & 0x03) << 3) & 0xff;
+	    }
+
+	    return rnds;
+	  };
+	}
+
+	module.exports = rng;
+
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 190 */
+/***/ function(module, exports) {
+
+	/**
+	 * Convert array of 16 byte values to UUID string format of the form:
+	 * XXXXXXXX-XXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+	 */
+	var byteToHex = [];
+	for (var i = 0; i < 256; ++i) {
+	  byteToHex[i] = (i + 0x100).toString(16).substr(1);
+	}
+
+	function bytesToUuid(buf, offset) {
+	  var i = offset || 0;
+	  var bth = byteToHex;
+	  return  bth[buf[i++]] + bth[buf[i++]] +
+	          bth[buf[i++]] + bth[buf[i++]] + '-' +
+	          bth[buf[i++]] + bth[buf[i++]] + '-' +
+	          bth[buf[i++]] + bth[buf[i++]] + '-' +
+	          bth[buf[i++]] + bth[buf[i++]] + '-' +
+	          bth[buf[i++]] + bth[buf[i++]] +
+	          bth[buf[i++]] + bth[buf[i++]] +
+	          bth[buf[i++]] + bth[buf[i++]];
+	}
+
+	module.exports = bytesToUuid;
+
+
+/***/ },
+/* 191 */
 /***/ function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
